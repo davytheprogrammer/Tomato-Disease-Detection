@@ -1,0 +1,149 @@
+{% extends 'tomato_app/base.html' %}
+{% load static %}
+{% block title %}Disease Information - Tomato Disease Library{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h2 class="display-5 fw-bold mb-3">
+            <i class="bi bi-journal-medical text-success"></i> Tomato Disease Library
+        </h2>
+        <p class="text-muted fs-5">
+            Comprehensive information about tomato diseases, symptoms, and treatments
+        </p>
+    </div>
+
+    <!-- Search/Dropdown -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Select a Disease:</h5>
+            <form method="get" class="row g-3">
+                <div class="col-md-8">
+                    <select name="disease" class="form-select form-select-lg" onchange="this.form.submit()">
+                        <option value="">-- Browse All Diseases --</option>
+                        {% for key, value in diseases %}
+                        <option value="{{ key }}" {% if selected_disease == key %}selected{% endif %}>
+                            {{ key }} {% if key == "Healthy Plant" %}- No Disease Detected{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary-custom btn-lg w-100">
+                        <i class="bi bi-search"></i> View Details
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Selected Disease Details -->
+    {% if disease_data %}
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-success text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="fw-bold mb-0">
+                    <i class="bi bi-exclamation-diamond"></i> {{ selected_disease }}
+                </h4>
+                {% if disease_data.severity != "None" %}
+                <span class="badge fs-6 {% if disease_data.severity == 'Very High' %}bg-danger{% elif disease_data.severity == 'High' %}bg-warning text-dark{% elif disease_data.severity == 'Medium' %}bg-info{% endif %}">
+                    {{ disease_data.severity }} Threat
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-start mb-3">
+                        <i class="bi bi-bookmark-star text-danger fs-4 me-3 mt-1"></i>
+                        <div>
+                            <h6 class="fw-bold mb-2 text-danger">Scientific Name:</h6>
+                            <p class="mb-0">{{ disease_data.scientific_name }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-start mb-3">
+                        <i class="bi bi-tag fs-4 text-info me-3 mt-1"></i>
+                        <div>
+                            <h6 class="fw-bold mb-2 text-info">Disease Type:</h6>
+                            <span class="badge bg-secondary">{{ disease_data.type }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-bandaid text-warning fs-4 me-3 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-3 text-warning">Common Symptoms:</h6>
+                            <div class="bg-light p-3 rounded">
+                                {{ disease_data.symptoms }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-prescription2 text-success fs-4 me-3 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-3 text-success">Treatment & Interventions:</h6>
+                            <div class="bg-light p-3 rounded">
+                                {{ disease_data.interventions|safe|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{% url 'upload_image' %}" class="btn btn-primary-custom">
+                    <i class="bi bi-upload"></i> Test For This Disease
+                </a>
+                <button class="btn btn-outline-secondary" onclick="window.print()">
+                    <i class="bi bi-printer"></i> Print Info
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- All Diseases -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="fw-bold mb-4">All Tomato Diseases</h3>
+            <div class="disease-grid">
+                {% for disease_name, info in diseases %}
+                <div class="disease-card" onclick="window.location.href='?disease={{ disease_name|urlencode }}'">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="fw-bold mb-0">{{ disease_name }}</h5>
+                        {% if info.severity != "None" %}
+                        <span class="badge severity-badge {% if info.severity == 'Very High' %}bg-danger{% elif info.severity == 'High' %}bg-warning text-dark{% elif info.severity == 'Medium' %}bg-info{% else %}bg-secondary{% endif %}">
+                            {{ info.severity }}
+                        </span>
+                        {% else %}
+                        <span class="badge severity-badge bg-success">
+                            Healthy
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted mb-2">
+                        <strong>{{ info.type }}</strong>
+                    </p>
+                    <p class="text-muted small">
+                        {{ info.symptoms|truncatewords:20 }}
+                    </p>
+                    <small class="text-primary d-block mt-auto fw-500">
+                        <i class="bi bi-arrow-right"></i> Click for full details
+                    </small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

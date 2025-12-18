@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client-Side Tomato Disease Detection</title>
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 2.5em; font-weight: 600; }
+        .header p { margin: 10px 0 0 0; opacity: 0.9; font-size: 1.1em; }
+        .content { padding: 40px; }
+        .upload-area {
+            border: 3px dashed #28a745;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            background: #e8f5e8;
+            border-color: #20c997;
+        }
+        .upload-area.dragover {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        .upload-icon {
+            font-size: 4em;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        input[type="file"] { 
+            display: none; 
+        }
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .preview {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .preview img {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .results {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            display: none;
+        }
+        .results.healthy {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border: 2px solid #28a745;
+        }
+        .results.diseased {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border: 2px solid #dc3545;
+        }
+        .results h3 {
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+        .confidence {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .confidence.high { color: #28a745; }
+        .confidence.medium { color: #ffc107; }
+        .confidence.low { color: #dc3545; }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #28a745;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .tips {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .tips h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .tips ul {
+            margin-bottom: 0;
+            color: #856404;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍅 SmartCrop AI</h1>
+            <p>AI-Powered Tomato Disease Detection - Client Side Analysis</p>
+        </div>
+        
+        <div class="content">
+            <div class="tips">
+                <h4>💡 Tips for Best Results:</h4>
+                <ul>
+                    <li>Ensure the image shows a single tomato leaf clearly</li>
+                    <li>Use natural lighting for optimal resolution</li>
+                    <li>Avoid shadows and glares on the leaf surface</li>
+                    <li>Capture against a plain background</li>
+                    <li>Supported formats: JPG, JPEG, PNG (max 10MB)</li>
+                </ul>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📸</div>
+                <h3>Click or Drag to Upload Image</h3>
+                <p>Drop your tomato leaf image here or click to browse</p>
+                <input type="file" id="imageInput" accept="image/jpeg,image/jpg,image/png">
+                <button class="btn" onclick="document.getElementById('imageInput').click()">
+                    Choose Image
+                </button>
+            </div>
+
+            <div class="preview" id="preview" style="display: none;">
+                <h4>Image Preview:</h4>
+                <img id="previewImage" alt="Preview">
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your image with AI...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="results" id="results">
+                <h3 id="resultTitle"></h3>
+                <div class="confidence" id="confidence"></div>
+                <div id="diseaseInfo"></div>
+                <div id="allPredictions"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" id="analyzeBtn" style="display: none;" onclick="analyzeImage()">
+                    🔬 Analyze Image
+                </button>
+                <button class="btn" id="newAnalysisBtn" style="display: none;" onclick="resetAnalysis()">
+                    📸 New Analysis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFile = null;
+        let currentResults = null;
+
+        // File input handler
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+
+        // Drag and drop handlers
+        const uploadArea = document.getElementById('uploadArea');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            uploadArea.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            uploadArea.classList.remove('dragover');
+        }
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                const file = files[0];
+                if (validateFile(file)) {
+                    handleFile(file);
+                }
+            }
+        }
+
+        function validateFile(file) {
+            // Check file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!validTypes.includes(file.type)) {
+                showError('Please upload a JPG, JPEG, or PNG image file.');
+                return false;
+            }
+
+            // Check file size (10MB max)
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                showError('File size must be less than 10MB.');
+                return false;
+            }
+
+            return true;
+        }
+
+        function handleFile(file) {
+            if (!validateFile(file)) return;
+
+            currentFile = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('preview').style.display = 'block';
+                document.getElementById('analyzeBtn').style.display = 'inline-block';
+                hideError();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function analyzeImage() {
+            if (!currentFile) {
+                showError('Please select an image first.');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('analyzeBtn').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            hideError();
+
+            try {
+                // Get CSRF token from meta tag or cookies
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content') || getCookie('csrftoken');
+                
+                if (!csrfToken) {
+                    throw new Error('CSRF token not found. Please refresh the page.');
+                }
+
+                // Create FormData and send to API
+                const formData = new FormData();
+                formData.append('image', currentFile);
+
+                const response = await fetch('/api/predict/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                    currentResults = data;
+                } else {
+                    throw new Error(data.error || 'Analysis failed');
+                }
+
+            } catch (error) {
+                showError(`Analysis failed: ${error.message}`);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const pred = data.prediction;
+            const isHealthy = pred.class === 'Healthy Plant';
+            const resultsDiv = document.getElementById('results');
+            
+            // Set results styling
+            resultsDiv.className = 'results ' + (isHealthy ? 'healthy' : 'diseased');
+            
+            // Set title
+            document.getElementById('resultTitle').innerHTML = 
+                (isHealthy ? '✅ ' : '⚠️ ') + pred.class;
+            
+            // Set confidence
+            const confidenceDiv = document.getElementById('confidence');
+            confidenceDiv.textContent = `Confidence: ${pred.confidence.toFixed(1)}%`;
+            confidenceDiv.className = 'confidence ' + 
+                (pred.confidence >= 80 ? 'high' : pred.confidence >= 60 ? 'medium' : 'low');
+            
+            // Set disease info
+            let diseaseInfoHtml = '';
+            if (pred.disease_info) {
+                if (pred.disease_info.symptoms) {
+                    diseaseInfoHtml += `
+                        <div style="margin: 15px 0;">
+                            <strong>📝 Symptoms:</strong><br>
+                            <div style="margin-top: 5px; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 8px;">
+                                ${pred.disease_info.symptoms}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (pred.disease_info.interventions && !isHealthy) {
+                    diseaseInfoHtml += `
+                        <div style="margin: 15px 0;">
+                            <strong>💊 Treatment:</strong><br>
+                            <div style="margin-top: 5px; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 8px;">
+                                ${pred.disease_info.interventions}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            document.getElementById('diseaseInfo').innerHTML = diseaseInfoHtml;
+            
+            // Show all predictions breakdown
+            if (data.all_predictions && data.all_predictions.length > 0) {
+                let predictionsHtml = '<div style="margin-top: 20px;"><strong>🔍 Detailed Analysis:</strong></div>';
+                
+                data.all_predictions.slice(0, 5).forEach(prediction => {
+                    const isTopPrediction = prediction.disease === pred.class;
+                    const barColor = prediction.confidence >= 70 ? '#28a745' : 
+                                   prediction.confidence >= 40 ? '#ffc107' : '#6c757d';
+                    
+                    predictionsHtml += `
+                        <div style="margin: 10px 0;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="font-weight: ${isTopPrediction ? 'bold' : 'normal'};">
+                                    ${prediction.disease} ${isTopPrediction ? '👑' : ''}
+                                </span>
+                                <span>${prediction.confidence.toFixed(1)}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${prediction.confidence}%; background: ${barColor};"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('allPredictions').innerHTML = predictionsHtml;
+            }
+            
+            // Show results and new analysis button
+            resultsDiv.style.display = 'block';
+            document.getElementById('newAnalysisBtn').style.display = 'inline-block';
+        }
+
+        function resetAnalysis() {
+            // Reset everything
+            currentFile = null;
+            currentResults = null;
+            document.getElementById('imageInput').value = '';
+            document.getElementById('preview').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('analyzeBtn').style.display = 'none';
+            document.getElementById('newAnalysisBtn').style.display = 'none';
+            hideError();
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        // CSRF token helper
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Initialize
+        console.log('🍅 Client-side tomato disease detection loaded');
+        console.log('📋 Features:');
+        console.log('  - No database storage');
+        console.log('  - Direct image analysis');
+        console.log('  - Real-time results');
+        console.log('  - Drag & drop support');
+    </script>
+</body>
+</html>

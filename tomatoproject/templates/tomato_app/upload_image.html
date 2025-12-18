@@ -1,0 +1,654 @@
+{% extends 'tomato_app/base.html' %}
+{% load static %}
+{% block title %}Upload Image - Tomato Disease Detection{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-area {
+        transition: all 0.3s ease;
+        border: 3px dashed #dee2e6;
+    }
+    .upload-area:hover {
+        border-color: #28a745;
+        background-color: #f8f9fa;
+    }
+    .upload-area.dragover {
+        border-color: #28a745;
+        background-color: #e8f5e8;
+        transform: scale(1.02);
+    }
+    .upload-icon {
+        font-size: 4rem;
+        color: #6c757d;
+        transition: color 0.3s ease;
+    }
+    .upload-area:hover .upload-icon {
+        color: #28a745;
+    }
+    .progress {
+        height: 10px;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    .progress-bar {
+        transition: width 0.3s ease;
+    }
+    .prediction-card {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border: 1px solid #dee2e6;
+        border-radius: 15px;
+        padding: 25px;
+        transition: all 0.3s ease;
+    }
+    .prediction-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .prediction-success {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        border-color: #28a745;
+    }
+    .confidence-bar {
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .confidence-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    .confidence-high {
+        background: linear-gradient(90deg, #28a745, #20c997);
+    }
+    .confidence-medium {
+        background: linear-gradient(90deg, #ffc107, #fd7e14);
+    }
+    .confidence-low {
+        background: linear-gradient(90deg, #6c757d, #495057);
+    }
+    .step-container {
+        min-height: 300px;
+        transition: all 0.3s ease;
+    }
+    .btn-lg-custom {
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+    .btn-lg-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .alert-custom {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .alert-warning-custom {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        color: #856404;
+    }
+    .spinner-custom {
+        width: 3rem;
+        height: 3rem;
+        border: 0.3em solid rgba(40, 167, 69, 0.3);
+        border-top-color: #28a745;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .hover-lift {
+        transition: transform 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-3px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">
+                    <i class="bi bi-image text-success"></i> Upload Tomato Leaf Image
+                </h2>
+                <p class="text-muted fs-5">
+                    Upload a clear photo of a tomato leaf to detect diseases and get treatment recommendations
+                </p>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="alert alert-warning-custom alert-custom mb-4">
+                <h6 class="fw-bold mb-2">
+                    <i class="bi bi-lightbulb text-warning"></i> Tips for Best Results:
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li>Ensure the image shows a single tomato leaf clearly</li>
+                            <li>Use natural lighting for optimal resolution</li>
+                            <li>Avoid shadows and glares on the leaf surface</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li>Capture against a plain background</li>
+                            <li>Avoid uploading blurry or very small images</li>
+                            <li>Ensure the leaf is in sharp focus</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-5">
+
+                    <!-- Step 1: Upload Area -->
+                    <div id="step1-upload">
+                        <div class="text-center">
+                            <div class="upload-area hover-lift" style="cursor: pointer; position: relative; overflow: hidden;">
+                                <input type="file" id="imageInput"
+                                    accept="image/jpeg,image/png,image/jpg,.jpg,.jpeg,.png"
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+                                <div class="upload-icon">
+                                    <i class="bi bi-cloud-arrow-up"></i>
+                                </div>
+                                <h5 class="mb-3">Click or Drag to Upload Image</h5>
+                                <p class="text-muted">Supported formats: JPG, JPEG, PNG</p>
+                                <small class="text-muted">Maximum file size: 10MB</small>
+                                <div class="mt-3">
+                                    <span class="badge bg-info">AI Powered</span>
+                                    <span class="badge bg-success">95% Accurate</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Preview & Upload Progress -->
+                    <div id="step2-preview" style="display: none;" class="fade-in">
+                        <div class="text-center mb-4">
+                            <img id="previewImage" src="" alt="Preview" class="img-fluid rounded shadow"
+                                style="max-height: 300px; object-fit: contain;">
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span id="statusText" class="fw-500">📤 Uploading image...</span>
+                                <span id="progressPercent" class="badge bg-primary">0%</span>
+                            </div>
+                            <div class="progress" style="height: 12px; border-radius: 6px;">
+                                <div id="uploadProgress"
+                                    class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                    style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="cancelBtn">
+                                <i class="bi bi-x"></i> Cancel Upload
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Results -->
+                    <div id="step3-results" style="display: none;" class="fade-in">
+                        <div class="row g-4">
+                            <div class="col-md-5">
+                                <div class="text-center">
+                                    <img id="resultImage" src="" alt="Analyzed Image" class="img-fluid rounded shadow"
+                                        style="max-height: 280px; object-fit: contain;">
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <div id="resultContent" class="prediction-card"></div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <div id="diseaseInfo" class="mt-4"></div>
+                        <div class="text-center mt-5">
+                            <button type="button" class="btn btn-primary-custom btn-lg hover-lift" id="newUploadBtn">
+                                <i class="bi bi-upload"></i> 📸 Analyze Another Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Error State -->
+                    <div id="step-error" style="display: none;" class="fade-in">
+                        <div class="text-center py-5">
+                            <i class="bi bi-exclamation-triangle text-danger" style="font-size: 5rem;"></i>
+                            <h4 class="mt-4 text-danger">Upload Failed</h4>
+                            <div id="errorMessage" class="alert alert-danger alert-custom mt-3"></div>
+                            <button type="button" class="btn btn-primary-custom btn-lg hover-lift" id="retryBtn">
+                                <i class="bi bi-arrow-clockwise"></i> 🔄 Try Again
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Alternative Actions -->
+            <div class="text-center">
+                <p class="text-muted mb-3">Or try these options:</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'batch_predict' %}" class="btn btn-outline-custom">
+                        <i class="bi bi-images"></i> Multiple Images
+                    </a>
+                    <a href="{% url 'disease_info' %}" class="btn btn-outline-custom">
+                        <i class="bi bi-journal-medical"></i> Browse Diseases
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        console.log('🍅 Enhanced Tomato Disease Detection Upload initialized');
+        
+        // Elements
+        var imageInput = document.getElementById('imageInput');
+        var step1 = document.getElementById('step1-upload');
+        var step2 = document.getElementById('step2-preview');
+        var step3 = document.getElementById('step3-results');
+        var stepError = document.getElementById('step-error');
+        var previewImage = document.getElementById('previewImage');
+        var resultImage = document.getElementById('resultImage');
+        var uploadProgress = document.getElementById('uploadProgress');
+        var progressPercent = document.getElementById('progressPercent');
+        var statusText = document.getElementById('statusText');
+        var resultContent = document.getElementById('resultContent');
+        var diseaseInfo = document.getElementById('diseaseInfo');
+        var errorMessage = document.getElementById('errorMessage');
+        var cancelBtn = document.getElementById('cancelBtn');
+        var newUploadBtn = document.getElementById('newUploadBtn');
+        var retryBtn = document.getElementById('retryBtn');
+
+        var currentXHR = null;
+
+        // Show specific step with logging
+        function showStep(step) {
+            console.log('📍 Showing step:', step);
+            step1.style.display = 'none';
+            step2.style.display = 'none';
+            step3.style.display = 'none';
+            stepError.style.display = 'none';
+
+            if (step === 1) {
+                step1.style.display = 'block';
+                step1.classList.add('fade-in');
+            }
+            if (step === 2) {
+                step2.style.display = 'block';
+                step2.classList.add('fade-in');
+            }
+            if (step === 3) {
+                step3.style.display = 'block';
+                step3.classList.add('fade-in');
+            }
+            if (step === 'error') {
+                stepError.style.display = 'block';
+                stepError.classList.add('fade-in');
+            }
+        }
+
+        // Enhanced reset function
+        function reset() {
+            console.log('🔄 Resetting upload form...');
+            imageInput.value = '';
+            previewImage.src = '';
+            resultImage.src = '';
+            uploadProgress.style.width = '0%';
+            progressPercent.textContent = '0%';
+            statusText.textContent = 'Uploading...';
+            resultContent.innerHTML = '';
+            diseaseInfo.innerHTML = '';
+            errorMessage.textContent = '';
+            
+            // Remove animation classes
+            [step1, step2, step3, stepError].forEach(function(step) {
+                step.classList.remove('fade-in');
+            });
+            
+            showStep(1);
+            console.log('✅ Reset complete');
+        }
+
+        // Enhanced file input change handler
+        imageInput.addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+
+            // Enhanced validation
+            if (file.size > 10 * 1024 * 1024) {
+                showError('File size must be less than 10MB. Selected file: ' + (file.size / (1024 * 1024)).toFixed(2) + 'MB');
+                imageInput.value = '';
+                return;
+            }
+
+            var validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (validTypes.indexOf(file.type) === -1) {
+                showError('Please select a JPG, JPEG, or PNG image. Selected: ' + file.type);
+                imageInput.value = '';
+                return;
+            }
+
+            // Show preview
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                previewImage.src = e.target.result;
+                resultImage.src = e.target.result;
+            };
+            reader.onerror = function (e) {
+                showError('Error reading file. Please try a different image.');
+                imageInput.value = '';
+            };
+            reader.readAsDataURL(file);
+
+            // Show step 2 and start upload
+            showStep(2);
+            uploadImage(file);
+        });
+
+        // Upload image via API - Enhanced version like debug upload
+        function uploadImage(file) {
+            try {
+                // Create FormData and send to API
+                const formData = new FormData();
+                formData.append('image', file);
+
+                currentXHR = new XMLHttpRequest();
+
+                // Enhanced progress handler
+                currentXHR.upload.addEventListener('progress', function (e) {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 50); // Upload is 50%
+                        uploadProgress.style.width = percent + '%';
+                        progressPercent.textContent = percent + '%';
+                        statusText.textContent = 'Uploading image... ' + percent + '%';
+                    }
+                });
+
+                // Enhanced load handler
+                currentXHR.addEventListener('load', function () {
+                    if (currentXHR.status === 200) {
+                        try {
+                            const response = JSON.parse(currentXHR.responseText);
+                            if (response.success) {
+                                // Animate to 100%
+                                uploadProgress.style.width = '100%';
+                                progressPercent.textContent = '100%';
+                                statusText.textContent = 'Analysis complete!';
+
+                                setTimeout(function () {
+                                    showResults(response);
+                                }, 500);
+                            } else {
+                                showError(response.error || 'Analysis failed');
+                            }
+                        } catch (e) {
+                            showError('Invalid response from server: ' + e.message);
+                        }
+                    } else {
+                        try {
+                            const err = JSON.parse(currentXHR.responseText);
+                            showError(err.error || 'Server error: ' + currentXHR.status);
+                        } catch (e) {
+                            showError('Server error: ' + currentXHR.status + ' - ' + currentXHR.statusText);
+                        }
+                    }
+                });
+
+                // Enhanced error handlers
+                currentXHR.addEventListener('error', function () {
+                    showError('Network error during upload. Check your connection and try again.');
+                });
+
+                currentXHR.addEventListener('timeout', function () {
+                    showError('Upload timeout. Server may be overloaded. Please try again.');
+                });
+
+                // Abort handler
+                currentXHR.addEventListener('abort', function () {
+                    reset();
+                });
+
+                // Start request with enhanced CSRF handling
+                currentXHR.open('POST', '{% url "api_predict" %}');
+                
+                // Try multiple CSRF token sources
+                var csrfToken = '{{ csrf_token }}';
+                if (!csrfToken || csrfToken === '') {
+                    // Fallback to meta tag
+                    var metaTag = document.querySelector('meta[name="csrf-token"]');
+                    if (metaTag) {
+                        csrfToken = metaTag.getAttribute('content');
+                    }
+                }
+                
+                if (csrfToken && csrfToken !== '') {
+                    currentXHR.setRequestHeader('X-CSRFToken', csrfToken);
+                    console.log('🔑 CSRF Token added:', csrfToken.substring(0, 10) + '...');
+                } else {
+                    console.warn('⚠️ No CSRF token found - request may fail');
+                }
+                
+                currentXHR.timeout = 30000; // 30 second timeout
+
+                // Enhanced processing progress
+                var processInterval;
+                currentXHR.addEventListener('loadstart', function () {
+                    var progress = 60;
+                    processInterval = setInterval(function () {
+                        if (progress < 95) {
+                            progress += 5;
+                            uploadProgress.style.width = progress + '%';
+                            progressPercent.textContent = progress + '%';
+                            statusText.textContent = 'Analyzing with AI... ' + progress + '%';
+                        }
+                    }, 200);
+                });
+
+                currentXHR.addEventListener('loadend', function () {
+                    clearInterval(processInterval);
+                });
+
+                currentXHR.send(formData);
+                
+            } catch (error) {
+                console.error('❌ Upload error:', error);
+                showError('Upload failed: ' + error.message);
+            }
+        }
+
+        // Enhanced show results function
+        function showResults(response) {
+            try {
+                if (!response || !response.prediction) {
+                    throw new Error('Invalid response format - no prediction data');
+                }
+                
+                var pred = response.prediction;
+                var isHealthy = pred.class === 'Healthy Plant';
+
+                var html = '<div class="mb-3">';
+                html += '<div class="d-flex align-items-center mb-2">';
+                if (isHealthy) {
+                    html += '<i class="bi bi-check-circle-fill text-success me-2" style="font-size: 2rem;"></i>';
+                    html += '<div><h4 class="mb-0 text-success">' + pred.class + '</h4>';
+                    html += '<span class="badge bg-success">Good News!</span></div>';
+                } else {
+                    html += '<i class="bi bi-exclamation-triangle-fill text-danger me-2" style="font-size: 2rem;"></i>';
+                    html += '<div><h4 class="mb-0 text-danger">' + pred.class + '</h4>';
+                    html += '<span class="badge bg-danger">Action Required</span></div>';
+                }
+                html += '</div></div>';
+
+                html += '<div class="mb-3">';
+                html += '<strong>Confidence:</strong> ';
+                var confColor = pred.confidence >= 80 ? 'success' : (pred.confidence >= 60 ? 'warning' : 'danger');
+                html += '<span class="badge bg-' + confColor + ' fs-6">' + pred.confidence.toFixed(1) + '%</span>';
+                html += '</div>';
+
+                // Enhanced all predictions display
+                if (response.all_predictions && response.all_predictions.length > 0) {
+                    html += '<div class="mt-4"><strong>📊 Detailed Analysis:</strong></div>';
+                    html += '<div class="mt-3">';
+                    response.all_predictions.slice(0, 5).forEach(function (p) {
+                        var barColor = p.confidence >= 70 ? 'bg-success' : (p.confidence >= 40 ? 'bg-warning' : 'bg-secondary');
+                        var isTop = p.disease === pred.class;
+                        html += '<div class="mb-3">';
+                        html += '<div class="d-flex justify-content-between small mb-1">';
+                        html += '<span class="fw-500">' + p.disease + (isTop ? ' 👑' : '') + '</span>';
+                        html += '<span class="text-muted">' + p.confidence.toFixed(1) + '%</span>';
+                        html += '</div>';
+                        html += '<div class="progress" style="height: 8px;">';
+                        html += '<div class="progress-bar ' + barColor + '" style="width: ' + p.confidence + '%;"></div>';
+                        html += '</div></div>';
+                    });
+                    html += '</div>';
+                }
+
+                resultContent.innerHTML = html;
+
+                // Enhanced disease info
+                var info = pred.disease_info || {};
+                var infoHtml = '';
+
+                if (info.symptoms) {
+                    infoHtml += '<div class="row g-4 mt-2">';
+                    infoHtml += '<div class="col-md-6"><div class="card h-100"><div class="card-body">';
+                    infoHtml += '<h6 class="text-danger"><i class="bi bi-exclamation-diamond"></i> Symptoms</h6>';
+                    infoHtml += '<p class="mb-0 small">' + info.symptoms + '</p>';
+                    infoHtml += '</div></div></div>';
+
+                    if (info.interventions && !isHealthy) {
+                        infoHtml += '<div class="col-md-6"><div class="card h-100"><div class="card-body">';
+                        infoHtml += '<h6 class="text-success"><i class="bi bi-shield-check"></i> Treatment</h6>';
+                        infoHtml += '<p class="mb-0 small">' + info.interventions + '</p>';
+                        infoHtml += '</div></div></div>';
+                    }
+                    infoHtml += '</div>';
+                }
+
+                diseaseInfo.innerHTML = infoHtml;
+                showStep(3);
+                
+                // Log success
+                console.log('✅ Results displayed successfully:', {
+                    prediction: pred.class,
+                    confidence: pred.confidence,
+                    diseaseCount: response.all_predictions ? response.all_predictions.length : 0
+                });
+                
+            } catch (error) {
+                console.error('❌ Error displaying results:', error);
+                showError('Error displaying results: ' + error.message);
+            }
+        }
+
+        // Enhanced show error function
+        function showError(message) {
+            console.error('❌ Upload error:', message);
+            errorMessage.textContent = message;
+            showStep('error');
+            
+            // Add different error types with suggestions
+            var suggestions = '';
+            if (message.includes('Network')) {
+                suggestions = '<br><small>💡 Check your internet connection and try again.</small>';
+            } else if (message.includes('File')) {
+                suggestions = '<br><small>💡 Make sure your image is JPG, JPEG, or PNG and under 10MB.</small>';
+            } else if (message.includes('Server')) {
+                suggestions = '<br><small>💡 The server may be busy. Try again in a moment.</small>';
+            } else if (message.includes('CSRF')) {
+                suggestions = '<br><small>💡 Try refreshing the page and uploading again.</small>';
+            }
+            
+            if (suggestions) {
+                errorMessage.innerHTML = message + suggestions;
+            }
+        }
+
+        // Cancel button
+        cancelBtn.addEventListener('click', function () {
+            if (currentXHR) {
+                currentXHR.abort();
+            }
+            reset();
+        });
+
+        // New upload button
+        newUploadBtn.addEventListener('click', function () {
+            reset();
+        });
+
+        // Retry button
+        retryBtn.addEventListener('click', function () {
+            reset();
+        });
+
+        // Enhanced drag and drop functionality
+        var uploadArea = document.querySelector('.upload-area');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (eventName) {
+            uploadArea.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+
+        ['dragenter', 'dragover'].forEach(function (eventName) {
+            uploadArea.addEventListener(eventName, function () {
+                uploadArea.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(function (eventName) {
+            uploadArea.addEventListener(eventName, function () {
+                uploadArea.classList.remove('dragover');
+            });
+        });
+
+        uploadArea.addEventListener('drop', function (e) {
+            var files = e.dataTransfer.files;
+            if (files.length > 0) {
+                // Validate dropped file
+                var file = files[0];
+                if (file.size > 10 * 1024 * 1024) {
+                    showError('Dropped file is too large. Maximum size: 10MB');
+                    return;
+                }
+                
+                var validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                if (validTypes.indexOf(file.type) === -1) {
+                    showError('Dropped file must be JPG, JPEG, or PNG');
+                    return;
+                }
+                
+                var dt = new DataTransfer();
+                dt.items.add(files[0]);
+                imageInput.files = dt.files;
+                imageInput.dispatchEvent(new Event('change'));
+            }
+        });
+    })();
+</script>
+{% endblock %}

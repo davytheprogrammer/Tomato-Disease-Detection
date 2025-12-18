@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Upload - No JavaScript</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; max-width: 600px; }
+        .upload-form { background: #f8f9fa; padding: 30px; border-radius: 10px; border: 2px solid #dee2e6; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; }
+        button { background: #28a745; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #218838; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>🍅 Simple Tomato Disease Detection</h1>
+    <p>This form doesn't use JavaScript - it should work even if there are JS issues.</p>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="info {% if message.tags == 'error' %}error{% endif %}">
+                <strong>{{ message.tags|title }}:</strong> {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="upload-form">
+        <h3>Upload Tomato Leaf Image</h3>
+        <form method="POST" action="{% url 'upload_image' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="image">Select Image File:</label>
+                <input type="file" id="image" name="image" accept="image/jpeg,image/jpg,image/png" required>
+                <small class="form-text text-muted">
+                    Allowed formats: JPG, JPEG, PNG | Maximum size: 10MB
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit">🚀 Analyze Image</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="info">
+        <h4>💡 Tips for Best Results:</h4>
+        <ul>
+            <li>Ensure the image shows a single tomato leaf clearly</li>
+            <li>Use natural lighting for optimal resolution</li>
+            <li>Avoid shadows and glares on the leaf surface</li>
+            <li>Capture against a plain background</li>
+        </ul>
+    </div>
+    
+    <p style="text-align: center; margin-top: 30px;">
+        <a href="{% url 'upload_image' %}">← Back to Advanced Upload</a>
+    </p>
+</body>
+</html>

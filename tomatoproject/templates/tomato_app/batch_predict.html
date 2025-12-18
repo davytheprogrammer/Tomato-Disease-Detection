@@ -1,0 +1,253 @@
+{% extends 'tomato_app/base.html' %}
+{% load static %}
+{% block title %}Batch Predict - Multiple Images{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">
+                    <i class="bi bi-images text-success"></i> Batch Upload & Predict
+                </h2>
+                <p class="text-muted fs-5">Upload multiple tomato leaf images for batch analysis</p>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="alert alert-warning-custom alert-custom mb-4">
+                <h6 class="fw-bold mb-2">
+                    <i class="bi bi-lightbulb text-warning"></i> Batch Upload Tips:
+                </h6>
+                <ul class="mb-0">
+                    <li>You can upload up to 10 images at once</li>
+                    <li>Each image should contain one tomato leaf</li>
+                    <li>All images will be analyzed simultaneously</li>
+                    <li>Results will be displayed for each image separately</li>
+                </ul>
+            </div>
+
+            <!-- Upload Form -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-5">
+                    <form method="post" enctype="multipart/form-data" id="batchForm">
+                        {% csrf_token %}
+
+                        <div class="upload-area" onclick="document.getElementById('id_images').click()">
+                            <div class="upload-icon">
+                                <i class="bi bi-images"></i>
+                            </div>
+                            <h5 class="mb-3">Click to Select Multiple Images</h5>
+                            <p class="text-muted mb-2">
+                                Or drag and drop multiple files here
+                            </p>
+                            <small class="text-muted">Hold Ctrl (or Cmd on Mac) to select multiple files</small>
+                        </div>
+
+                        <div class="d-none">
+                            <input type="file" name="images" multiple accept="image/jpeg,image/jpg,image/png" id="id_images">
+                        </div>
+
+                        <div id="fileList" class="mt-3" style="display: none;">
+                            <h6 class="mb-3">Selected Files:</h6>
+                            <div id="fileItems" class="mb-3"></div>
+                            <div class="text-center">
+                                <button type="button" class="btn btn-outline-danger" onclick="clearFiles()">
+                                    <i class="bi bi-trash"></i> Clear All
+                                </button>
+                            </div>
+                        </div>
+
+                        {% if form.images.errors %}
+                        <div class="alert alert-danger mt-3">
+                            {{ form.images.errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary-custom btn-lg" id="batchSubmitBtn" disabled>
+                                <i class="bi bi-search"></i> Analyze All Images
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Loading Animation -->
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <h5 class="text-success">Processing Batch...</h5>
+                        <p class="text-muted">Analyzing images with AI. This may take a moment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alternative Actions -->
+            <div class="text-center">
+                <p class="text-muted mb-3">Or try:</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'upload_image' %}" class="btn btn-outline-custom">
+                        <i class="bi bi-image"></i> Single Image
+                    </a>
+                    <a href="{% url 'disease_info' %}" class="btn btn-outline-custom">
+                        <i class="bi bi-journal-medical"></i> Disease Library
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const filesInput = document.getElementById('id_images');
+const fileList = document.getElementById('fileList');
+const fileItems = document.getElementById('fileItems');
+const batchSubmitBtn = document.getElementById('batchSubmitBtn');
+const batchForm = document.getElementById('batchForm');
+const loading = document.getElementById('loading');
+
+// Max files
+const MAX_FILES = 10;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+filesInput.addEventListener('change', function(e) {
+    handleFiles(e.target.files);
+});
+
+function handleFiles(files) {
+    fileItems.innerHTML = '';
+    if (files.length === 0) {
+        fileList.style.display = 'none';
+        batchSubmitBtn.disabled = true;
+        return;
+    }
+
+    if (files.length > MAX_FILES) {
+        alert(`Maximum ${MAX_FILES} files allowed. You selected ${files.length} files.`);
+        filesInput.value = '';
+        fileList.style.display = 'none';
+        batchSubmitBtn.disabled = true;
+        return;
+    }
+
+    let totalSize = 0;
+    let hasError = false;
+
+    Array.from(files).forEach((file, index) => {
+        totalSize += file.size;
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            alert(`${file.name} is not an image file. Please upload JPG, JPEG, or PNG files only.`);
+            hasError = true;
+            return;
+        }
+
+        // Validate individual file size
+        if (file.size > MAX_FILE_SIZE) {
+            alert(`${file.name} is larger than 10MB limit.`);
+            hasError = true;
+            return;
+        }
+
+        const fileItem = document.createElement('div');
+        fileItem.className = 'd-flex justify-content-between align-items-center bg-light p-2 rounded mb-2';
+        fileItem.innerHTML = `
+            <div>
+                <i class="bi bi-image"></i>
+                <span>${file.name}</span>
+                <small class="text-muted ms-2">(${fileSize} MB)</small>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(${index})">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+        fileItems.appendChild(fileItem);
+    });
+
+    if (hasError) {
+        filesInput.value = '';
+        fileList.style.display = 'none';
+        batchSubmitBtn.disabled = true;
+        return;
+    }
+
+    if (totalSize > MAX_FILE_SIZE * MAX_FILES) {
+        alert('Total file size exceeds limit.');
+        filesInput.value = '';
+        fileList.style.display = 'none';
+        batchSubmitBtn.disabled = true;
+        return;
+    }
+
+    fileList.style.display = 'block';
+    batchSubmitBtn.disabled = false;
+}
+
+function clearFiles() {
+    filesInput.value = '';
+    fileList.style.display = 'none';
+    batchSubmitBtn.disabled = true;
+}
+
+function removeFile(index) {
+    const dt = new DataTransfer();
+    const files = filesInput.files;
+
+    for (let i = 0; i < files.length; i++) {
+        if (i !== index) {
+            dt.items.add(files[i]);
+        }
+    }
+
+    filesInput.files = dt.files;
+    handleFiles(filesInput.files);
+}
+
+// Drag and drop
+const uploadArea = document.querySelector('.upload-area');
+
+uploadArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    this.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('dragover');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        // Create a new DataTransfer object
+        const dt = new DataTransfer();
+        for (let i = 0; i < files.length; i++) {
+            dt.items.add(files[i]);
+        }
+
+        filesInput.files = dt.files;
+        handleFiles(filesInput.files);
+    }
+});
+
+// Form submission
+batchForm.addEventListener('submit', function(e) {
+    const files = filesInput.files;
+    if (files.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one image');
+        return;
+    }
+
+    // Show loading animation
+    document.querySelector('.card-body').style.display = 'none';
+    loading.classList.add('show');
+});
+</script>
+{% endblock %}

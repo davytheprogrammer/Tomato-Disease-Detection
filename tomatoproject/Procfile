@@ -1,0 +1,2 @@
+# Heroku deployment
+web: gunicorn tomato_disease.wsgi --log-file -

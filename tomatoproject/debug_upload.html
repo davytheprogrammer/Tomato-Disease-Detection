@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-info { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Tomato Disease Detection - Debug Upload</h1>
+    
+    <div class="debug-info">
+        <h3>Test Upload</h3>
+        <form id="debugForm" enctype="multipart/form-data">
+            <input type="file" id="imageFile" name="image" accept="image/jpeg,image/jpg,image/png" required>
+            <button type="submit">Upload Image</button>
+        </form>
+    </div>
+    
+    <div id="debugOutput" class="debug-info" style="display:none;">
+        <h3>Debug Output:</h3>
+        <pre id="output"></pre>
+    </div>
+    
+    <div id="errorOutput" class="debug-info" style="display:none;">
+        <h3>Errors:</h3>
+        <pre id="errors" class="error"></pre>
+    </div>
+
+    <script>
+        document.getElementById('debugForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+            
+            // Debug file info
+            const debugInfo = {
+                filename: file.name,
+                size: file.size,
+                type: file.type,
+                lastModified: new Date(file.lastModified).toISOString()
+            };
+            
+            document.getElementById('output').textContent = 'File info: ' + JSON.stringify(debugInfo, null, 2);
+            document.getElementById('debugOutput').style.display = 'block';
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                console.log('Starting upload...');
+                
+                const response = await fetch('/api/predict/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const responseText = await response.text();
+                console.log('Response body:', responseText);
+                
+                if (response.ok) {
+                    const data = JSON.parse(responseText);
+                    document.getElementById('output').textContent += '\n\nSuccess: ' + JSON.stringify(data, null, 2);
+                } else {
+                    document.getElementById('errorOutput').style.display = 'block';
+                    document.getElementById('errors').textContent = 'Error ' + response.status + ': ' + responseText;
+                }
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                document.getElementById('errorOutput').style.display = 'block';
+                document.getElementById('errors').textContent = 'Network error: ' + error.message;
+            }
+        });
+        
+        // CSRF token helper
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

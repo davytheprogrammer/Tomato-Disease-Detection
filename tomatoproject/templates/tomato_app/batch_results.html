@@ -1,0 +1,161 @@
+{% extends 'tomato_app/base.html' %}
+{% load static %}
+{% block title %}Batch Results - {{ total }} Images Analyzed{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-11 mx-auto">
+            <!-- Header -->
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">Batch Analysis Results</h2>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-check-circle text-success"></i> {{ successful }} of {{ total }} images analyzed
+                        successfully
+                    </p>
+                </div>
+                <a href="{% url 'batch_predict' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> New Batch
+                </a>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm bg-success bg-opacity-10">
+                        <div class="card-body text-center">
+                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                            <h3 class="fw-bold mt-2 mb-0 text-success">{{ successful }}</h3>
+                            <small class="text-muted">Successful</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm bg-danger bg-opacity-10">
+                        <div class="card-body text-center">
+                            <i class="bi bi-x-circle-fill text-danger fs-1"></i>
+                            <h3 class="fw-bold mt-2 mb-0 text-danger">{{ total|add:"-successful" }}</h3>
+                            <small class="text-muted">Failed</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm bg-info bg-opacity-10">
+                        <div class="card-body text-center">
+                            <i class="bi bi-images fs-1 text-info"></i>
+                            <h3 class="fw-bold mt-2 mb-0 text-info">{{ total }}</h3>
+                            <small class="text-muted">Total Images</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div class="row g-4">
+                {% for item in results %}
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100 {% if 'error' in item %}border-danger{% else %}border-success{% endif %}"
+                        style="border-left: 4px solid !important;">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <!-- Image Preview -->
+                                <div class="col-md-5">
+                                    <div class="text-center">
+                                        {% if item.prediction.image %}
+                                        <img src="{{ item.prediction.image.url }}" alt="{{ item.image_name }}"
+                                            class="img-fluid rounded shadow-sm"
+                                            style="max-height: 200px; object-fit: cover; width: 100%;">
+                                        {% else %}
+                                        <div class="bg-light rounded p-4">
+                                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                        </div>
+                                        {% endif %}
+                                        <p class="text-muted small mt-2 mb-0 text-truncate">{{ item.image_name }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Result Info -->
+                                <div class="col-md-7">
+                                    {% if 'error' in item %}
+                                    <!-- Error State -->
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-x-circle-fill text-danger fs-3 me-2"></i>
+                                        <h5 class="fw-bold mb-0 text-danger">Processing Failed</h5>
+                                    </div>
+                                    <div class="alert alert-danger mb-0">
+                                        <small>{{ item.error }}</small>
+                                    </div>
+                                    {% else %}
+                                    <!-- Success State -->
+                                    <div class="d-flex align-items-start mb-3">
+                                        {% if item.result.predicted_class == "Healthy Plant" %}
+                                        <i class="bi bi-check-circle-fill text-success fs-3 me-2"></i>
+                                        {% else %}
+                                        <i class="bi bi-exclamation-triangle-fill text-warning fs-3 me-2"></i>
+                                        {% endif %}
+                                        <div class="flex-grow-1">
+                                            <h6
+                                                class="fw-bold mb-1 {% if item.result.predicted_class == 'Healthy Plant' %}text-success{% else %}text-danger{% endif %}">
+                                                {{ item.result.predicted_class }}
+                                            </h6>
+                                            <small class="text-muted">{{ item.disease_info.type }}</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Confidence -->
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <small class="text-muted">Confidence</small>
+                                            <small class="fw-bold">{{ item.result.confidence|floatformat:1 }}%</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar {% if item.result.confidence >= 80 %}bg-success{% elif item.result.confidence >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
+                                                role="progressbar" style="width: {{ item.result.confidence }}%"
+                                                aria-valuenow="{{ item.result.confidence }}" aria-valuemin="0"
+                                                aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'disease_info' %}?disease={{ item.result.predicted_class|urlencode }}"
+                                            class="btn btn-sm btn-outline-primary flex-grow-1">
+                                            <i class="bi bi-info-circle"></i> Details
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-warning text-center">
+                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                        <p class="mb-0 mt-2">No results to display</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Actions -->
+            <div class="text-center mt-5">
+                <h5 class="fw-bold mb-3">What's Next?</h5>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'batch_predict' %}" class="btn btn-primary-custom">
+                        <i class="bi bi-images"></i> Analyze More Images
+                    </a>
+                    <a href="{% url 'crop_report' %}" class="btn btn-outline-custom">
+                        <i class="bi bi-bar-chart"></i> View Full Report
+                    </a>
+                    <a href="{% url 'disease_info' %}" class="btn btn-outline-custom">
+                        <i class="bi bi-journal-medical"></i> Disease Library
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

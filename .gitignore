@@ -1,0 +1,49 @@
+# -------------------------
+# Python & Jupyter settings
+# -------------------------
+__pycache__/
+*.py[cod]
+*.ipynb_checkpoints/
+*.egg-info/
+.env
+venv/
+.env/
+.venv/
+
+# -------------------------
+# Data folders
+# -------------------------
+data/
+Preprocessed_data/
+*.csv
+*.xlsx
+*.zip
+*.gz
+
+# -------------------------
+# Model files
+# -------------------------
+*.h5
+*.pkl
+*.joblib
+*.pt
+*.onnx
+
+# -------------------------
+# System & IDE files
+# -------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# -------------------------
+# Other temporary or large files
+# -------------------------
+*.bak
+*.tmp
+*.tar
+*.tar.gz
+*.rar
+*.7z

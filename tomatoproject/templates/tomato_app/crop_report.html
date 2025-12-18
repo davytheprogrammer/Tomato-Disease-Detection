@@ -1,0 +1,210 @@
+{% extends 'tomato_app/base.html' %}
+{% load static %}
+{% block title %}Crop Report - Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="display-5 fw-bold mb-2">
+                <i class="bi bi-bar-chart text-success"></i> Crop Report & Analytics
+            </h2>
+            <p class="text-muted fs-5">Track your tomato leaf analysis history and disease trends</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-custom">
+                <i class="bi bi-printer"></i> Print Report
+            </button>
+            {% if stats.total > 0 %}
+            <a href="?download=csv" class="btn btn-primary-custom">
+                <i class="bi bi-download"></i> Export
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    {% if stats.total > 0 %}
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon text-info">
+                    <i class="bi bi-camera"></i>
+                </div>
+                <div class="stat-number text-info">{{ stats.total }}</div>
+                <div class="stat-label">Total Images</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon text-success">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-number text-success">{{ stats.healthy }}</div>
+                <div class="stat-label">Healthy Leaves</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-number text-danger">{{ stats.diseased }}</div>
+                <div class="stat-label">Diseased Leaves</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon text-warning">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div class="stat-number text-warning">{{ health_percentage }}%</div>
+                <div class="stat-label">Health Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disease Distribution -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-pie-chart text-primary"></i> Disease Distribution
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Disease</th>
+                                <th class="text-center">Count</th>
+                                <th class="text-center">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dist in stats.disease_distribution %}
+                            <tr>
+                                <td>
+                                    {% if dist.prediction == "Healthy Plant" %}
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    {% else %}
+                                    <i class="bi bi-exclamation-triangle text-danger"></i>
+                                    {% endif %}
+                                    {{ dist.prediction }}
+                                </td>
+                                <td class="text-center">{{ dist.count }}</td>
+                                <td class="text-center">
+                                    {{ dist.percentage }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-bar-chart text-success"></i> Disease Chart
+                </h5>
+                <div class="bg-light p-4 rounded text-center" style="height: 300px;">
+                    <div class="d-flex flex-column justify-content-center h-100">
+                        <i class="bi bi-graph-up text-success display-1 mb-3"></i>
+                        <h6>Visual Chart</h6>
+                        <p class="text-muted">Disease distribution visualization would appear here</p>
+                        <small class="text-muted">Chart feature coming soon</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Predictions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0">
+                        <i class="bi bi-list-check text-info"></i> Recent Predictions
+                    </h5>
+                    <a href="{% url 'batch_predict' %}" class="btn btn-sm btn-outline-custom">
+                        <i class="bi bi-plus"></i> Add More
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-custom">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Image Name</th>
+                                <th>Prediction</th>
+                                <th class="text-center">Confidence</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in predictions %}
+                            <tr>
+                                <td>{{ pred.timestamp|date:"Y-m-d" }}<br>
+                                    <small class="text-muted">{{ pred.timestamp|date:"H:i" }}</small>
+                                </td>
+                                <td>{{ pred.image_name }}</td>
+                                <td>
+                                    {% if pred.prediction == "Healthy Plant" %}
+                                    <span class="text-success fw-500">
+                                        <i class="bi bi-check-circle"></i> {{ pred.prediction }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-danger fw-500">
+                                        <i class="bi bi-exclamation-triangle"></i> {{ pred.prediction }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge
+                                        {% if pred.confidence >= 0.8 %} bg-success
+                                        {% elif pred.confidence >= 0.6 %} bg-warning text-dark
+                                        {% else %} bg-danger {% endif %}">
+                                        {{ pred.confidence|floatformat:1 }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if pred.prediction == "Healthy Plant" %}
+                                    <span class="badge bg-success">Good</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Diseased</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox display-4 d-block mb-3"></i>
+                                    No predictions yet<br>
+                                    <a href="{% url 'upload_image' %}" class="btn btn-primary-custom mt-3">
+                                        Make Your First Prediction
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="alert alert-info-custom alert-custom text-center py-5">
+        <i class="bi bi-inbox display-1 d-block mb-3"></i>
+        <h4>No Data Available</h4>
+        <p class="text-muted">Start uploading tomato leaf images to see analytics and reports.</p>
+        <a href="{% url 'upload_image' %}" class="btn btn-primary-custom btn-lg mt-3">
+            <i class="bi bi-upload"></i> Upload First Image
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

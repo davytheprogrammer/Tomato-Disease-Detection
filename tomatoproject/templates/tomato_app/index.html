@@ -1,0 +1,304 @@
+{% extends 'tomato_app/base.html' %}
+{% load static %}
+{% block title %}SmartCrop AI - AI-Powered Tomato Disease Detection{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content">
+                <div class="text-center text-lg-start">
+                    <div class="mb-3">
+                        <i class="bi bi-flower1 display-1 text-success"></i>
+                    </div>
+                    <h1 class="hero-title">SmartCrop AI</h1>
+                    <p class="hero-subtitle">Detect tomato leaf diseases instantly with AI. Upload an image and get accurate predictions with treatment recommendations within seconds.</p>
+
+                    <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start mt-4">
+                        <a href="{% url 'simple_upload' %}" class="btn btn-primary-custom btn-lg hover-lift">
+                            <i class="bi bi-upload"></i> Start Detecting
+                        </a>
+                        <a href="{% url 'crop_report' %}" class="btn btn-outline-light btn-lg hover-lift">
+                            <i class="bi bi-bar-chart"></i> View Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center d-none d-lg-block">
+                <i class="bi bi-flower1 display-1 text-white opacity-50 mb-3"></i>
+                <div class="card bg-white bg-opacity-10 border-0">
+                    <div class="card-body text-white">
+                        <h5 class="card-title">Powered by Deep Learning</h5>
+                        <p class="card-text">95% accuracy with MobileNetV2</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Section -->
+<section class="py-5 bg-primary bg-gradient text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h3 class="display-6 fw-bold mb-3">
+                    <i class="bi bi-camera"></i> Ready to Analyze Your Tomato Plants?
+                </h3>
+                <p class="lead mb-4">
+                    Our enhanced upload interface makes it easier than ever to get instant disease detection. 
+                    Simply upload a clear photo of your tomato leaf and get results in seconds.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'simple_upload' %}" class="btn btn-light btn-lg hover-lift">
+                        <i class="bi bi-upload"></i> Upload Image Now
+                    </a>
+                    <a href="{% url 'disease_info' %}" class="btn btn-outline-light btn-lg hover-lift">
+                        <i class="bi bi-journal-medical"></i> Browse Disease Library
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="text-center">
+                    <i class="bi bi-plant display-1 mb-3"></i>
+                    <div class="d-flex justify-content-center gap-4">
+                        <div>
+                            <div class="h4 mb-1">95%</div>
+                            <small>Accuracy</small>
+                        </div>
+                        <div>
+                            <div class="h4 mb-1">10</div>
+                            <small>Disease Classes</small>
+                        </div>
+                        <div>
+                            <div class="h4 mb-1">2189</div>
+                            <small>Test Images</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon text-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="stat-number text-success">
+                        <span data-count="95">0</span>%
+                    </div>
+                    <div class="stat-label">Detection Accuracy</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon text-danger">
+                        <i class="bi bi-bug-fill"></i>
+                    </div>
+                    <div class="stat-number text-danger"><span data-count="10">0</span></div>
+                    <div class="stat-label">Disease Classes</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon text-info">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <div class="stat-number text-info">
+                        <span data-count="2189">0</span>
+                    </div>
+                    <div class="stat-label">Test Images</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">Why Choose SmartCrop AI?</h2>
+                <p class="text-muted fs-5">Professional-grade disease detection for modern agriculture</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card text-center">
+                    <div class="feature-icon bg-success bg-opacity-10 text-success mx-auto">
+                        <i class="bi bi-lightning-charge"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Instant Results</h4>
+                    <p class="text-muted">Get disease predictions in seconds with our optimized deep learning model. No waiting, just results.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card text-center">
+                    <div class="feature-icon bg-warning bg-opacity-10 text-warning mx-auto">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">95% Accuracy</h4>
+                    <p class="text-muted">Fine-tuned MobileNetV2 model trained on thousands of real tomato leaf images for reliable detection.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card text-center">
+                    <div class="feature-icon bg-info bg-opacity-10 text-info mx-auto">
+                        <i class="bi bi-journal-medical"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Treatment Guidance</h4>
+                    <p class="text-muted">Not just detection! Get detailed treatment recommendations and preventive measures for each disease.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card text-center">
+                    <div class="feature-icon bg-primary bg-opacity-10 text-primary mx-auto">
+                        <i class="bi bi-phone"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Mobile Friendly</h4>
+                    <p class="text-muted">Works perfectly on any device. Take photos in the field and get instant results on your phone.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card text-center">
+                    <div class="feature-icon bg-secondary bg-opacity-10 text-secondary mx-auto">
+                        <i class="bi bi-images"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Batch Processing</h4>
+                    <p class="text-muted">Upload multiple images at once for efficient field surveys and comprehensive crop analysis.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card text-center">
+                    <div class="feature-icon bg-danger bg-opacity-10 text-danger mx-auto">
+                        <i class="bi bi-bar-chart"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Analytics Dashboard</h4>
+                    <p class="text-muted">Track prediction history, view trends, and export reports for farm management and record keeping.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">How It Works</h2>
+                <p class="text-muted fs-5">Simple 4-step process for accurate disease detection</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center bg-success text-white rounded-circle" style="width: 80px; height: 80px; font-size: 1.8rem;">
+                        1
+                    </div>
+                    <h4 class="fw-bold">Capture</h4>
+                    <p class="text-muted">Take a clear photo of a tomato leaf showing symptoms</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center bg-success text-white rounded-circle" style="width: 80px; height: 80px; font-size: 1.8rem;">
+                        2
+                    </div>
+                    <h4 class="fw-bold">Upload</h4>
+                    <p class="text-muted">Upload the image to our secure web platform</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center bg-success text-white rounded-circle" style="width: 80px; height: 80px; font-size: 1.8rem;">
+                        3
+                    </div>
+                    <h4 class="fw-bold">Analyze</h4>
+                    <p class="text-muted">Our AI analyzes the image using deep learning</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center bg-success text-white rounded-circle" style="width: 80px; height: 80px; font-size: 1.8rem;">
+                        4
+                    </div>
+                    <h4 class="fw-bold">Results</h4>
+                    <p class="text-muted">Get disease prediction with treatment recommendations</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Actions -->
+<section class="py-5 bg-success text-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="display-5 fw-bold mb-3">Ready to Start?</h2>
+                <p class="mb-4 fs-5 opacity-90">Start detecting tomato diseases in seconds</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'upload_image' %}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-upload"></i> Upload Single Image
+                    </a>
+                    <a href="{% url 'batch_predict' %}" class="btn btn-light btn-lg text-success">
+                        <i class="bi bi-images"></i> Batch Upload
+                    </a>
+                    <a href="{% url 'disease_info' %}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-journal-medical"></i> Browse Disease Library
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Smooth scrolling for internal links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+});
+
+// Counter animation
+function animateCounters() {
+    const counters = document.querySelectorAll('[data-count]');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-count'));
+        const duration = 2000;
+        const step = target / (duration / 16);
+        let current = 0;
+
+        const timer = setInterval(() => {
+            current += step;
+            if (current >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current);
+            }
+        }, 16);
+    });
+}
+
+// Trigger animation when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(animateCounters, 500);
+});
+</script>
+{% endblock %}

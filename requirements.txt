@@ -1,0 +1,22 @@
+# SmartCrop AI - Main Requirements
+# Copy of requirements from tomatoproject
+
+# Django Framework
+django>=4.2.0,<5.0.0
+
+# Machine Learning & Image Processing
+tensorflow>=2.13.0,<3.0.0
+Pillow>=10.0.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Web Server & Production
+# gunicorn>=21.0.0
+# whitenoise>=6.0.0
+# python-decouple>=3.8
+
+# Database
+# psycopg2-binary>=2.9.0
+
+# Utilities
+pytz>=2023.3

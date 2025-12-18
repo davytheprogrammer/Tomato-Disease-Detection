@@ -1,0 +1,65 @@
+{% extends 'tomato_app/base.html' %}
+{% load static %}
+{% block title %}About SmartCrop AI - Tomato Disease Detection System{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <i class="bi bi-flower1 display-1 text-white mb-4"></i>
+                <h1 class="hero-title">About SmartCrop AI</h1>
+                <p class="hero-subtitle">
+                    Empowering farmers with AI-driven plant health diagnostics for healthier crops and better yields
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="container py-5">
+    <div class="row g-5">
+        <div class="col-lg-10 mx-auto">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6">
+                            <h3 class="fw-bold mb-3">
+                                <i class="bi bi-bullseye text-success"></i> Our Mission
+                            </h3>
+                            <p class="text-muted fs-5">
+                                To revolutionize agricultural disease detection through artificial intelligence,
+                                making advanced plant health diagnostics accessible to farmers worldwide.
+                            </p>
+                        </div>
+                        <div class="col-lg-6 text-center">
+                            <i class="bi bi-flower1 display-1 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="bg-success text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-9">
+                <h3 class="fw-bold mb-2">Ready to Transform Your Farm?</h3>
+                <p class="mb-0 opacity-90">
+                    Join thousands of farmers using AI to protect their crops and increase yields.
+                </p>
+            </div>
+            <div class="col-lg-3 text-lg-end">
+                <a href="{% url 'upload_image' %}" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-rocket"></i> Get Started
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

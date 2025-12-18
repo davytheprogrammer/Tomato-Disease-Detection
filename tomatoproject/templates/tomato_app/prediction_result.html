@@ -1,0 +1,192 @@
+{% extends 'tomato_app/base.html' %}
+{% load static %}
+{% block title %}Prediction Results - {{ result.predicted_class }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Header -->
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'upload_image' %}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> New Upload
+                </a>
+                <h2 class="fw-bold mb-0">Prediction Results</h2>
+            </div>
+
+            <div class="row g-4">
+                <!-- Image Section -->
+                <div class="col-lg-5">
+                    <div class="prediction-card h-100">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-image"></i> Original Image
+                        </h5>
+                        <div class="text-center">
+                            {% if prediction.image %}
+                            <img src="{{ prediction.image.url }}" alt="{{ image_name }}" class="img-fluid rounded border shadow-sm" style="max-height: 400px; object-fit: contain;">
+                            {% else %}
+                            <div class="bg-light rounded p-5">
+                                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                                <p class="text-muted mt-3">Image not available</p>
+                            </div>
+                            {% endif %}
+                            <p class="text-muted mt-2 mb-0">
+                                <small>{{ image_name }}</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prediction Result -->
+                <div class="col-lg-7">
+                    <div class="prediction-card prediction-success">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-stars text-success"></i> Detection Result
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-3">
+                                    {% if result.predicted_class == "Healthy Plant" %}
+                                        <i class="bi bi-check-circle-fill text-success display-4 me-3"></i>
+                                    {% else %}
+                                        <i class="bi bi-exclamation-triangle-fill text-danger display-4 me-3"></i>
+                                    {% endif %}
+                                    <div>
+                                        <h4 class="fw-bold mb-0 {% if result.predicted_class == 'Healthy Plant' %}text-success{% else %}text-danger{% endif %}">
+                                            {{ result.predicted_class }}
+                                        </h4>
+                                        {% if result.predicted_class == "Healthy Plant" %}
+                                            <span class="badge bg-success">Good News!</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Action Required</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <div class="mb-2">
+                                    <span class="text-muted">Confidence Score:</span><br>
+                                    <span class="fw-bold fs-4" style="color: {% if result.confidence >= 0.8 %}#28a745{% elif result.confidence >= 0.6 %}#ffc107{% else %}#dc3545{% endif %}">
+                                        {{ result.confidence|floatformat:1 }}%
+                                    </span>
+                                </div>
+                                {% if disease_info.scientific_name %}
+                                <div class="small text-muted">
+                                    <strong>Scientific Name:</strong> {{ disease_info.scientific_name }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Confidence Details -->
+                        <h6 class="fw-bold mb-3">Confidence Breakdown:</h6>
+                        {% for pred in result.all_predictions %}
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small fw-500">{{ pred.disease }}</span>
+                                <span class="small text-muted">{{ pred.confidence|floatformat:1 }}%</span>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill confidence-{% if pred.confidence >= 70 %}high{% elif pred.confidence >= 40 %}medium{% else %}low{% endif %}"
+                                     style="width: {{ pred.confidence }}%;">
+                                    <span class="me-2"></span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disease Information -->
+            {% if disease_info %}
+            <div class="row">
+                <div class="col-12">
+                    <h4 class="fw-bold mb-4">
+                        <i class="bi bi-journal-medical text-primary"></i> Disease Information
+                    </h4>
+
+                    <div class="row g-4">
+                        <!-- Symptoms -->
+                        <div class="col-md-6">
+                            <div class="disease-info-card">
+                                <h6 class="text-danger">
+                                    <i class="bi bi-exclamation-diamond"></i> Symptoms
+                                </h6>
+                                <p class="mb-0">{{ disease_info.symptoms }}</p>
+                            </div>
+                        </div>
+
+                        {% if result.predicted_class != "Healthy Plant" %}
+                        <!-- Interventions -->
+                        <div class="col-md-6">
+                            <div class="disease-info-card">
+                                <h6 class="text-success">
+                                    <i class="bi bi-shield-check"></i> Treatment & Interventions
+                                </h6>
+                                <div>{{ disease_info.interventions|safe|linebreaks }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if result.predicted_class != "Healthy Plant" %}
+                        <!-- Threat Level -->
+                        <div class="col-12">
+                            <div class="disease-info-card">
+                                <h6 class="text-warning">
+                                    <i class="bi bi-speedometer2"></i> Threat Level
+                                </h6>
+                                <p class="mb-0">
+                                    <span class="badge {% if disease_info.severity == 'Very High' %}bg-danger{% elif disease_info.severity == 'High' %}bg-warning text-dark{% elif disease_info.severity == 'Medium' %}bg-info{% else %}bg-secondary{% endif %} fs-6">
+                                        {{ disease_info.severity }}
+                                    </span>
+                                    <span class="ms-3 text-muted">
+                                        Quick action is {% if disease_info.severity == 'Very High' or disease_info.severity == 'High' %}recommended{% else %}advisable{% endif %} to prevent spread.
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <h5 class="fw-bold mb-4">Next Steps:</h5>
+                    <div class="d-flex flex-wrap gap-3">
+                        {% if result.predicted_class == "Healthy Plant" %}
+                        <a href="{% url 'upload_image' %}" class="btn btn-outline-custom">
+                            <i class="bi bi-upload"></i> Test Another Image
+                        </a>
+                        <a href="{% url 'batch_predict' %}" class="btn btn-outline-custom">
+                            <i class="bi bi-speedometer2"></i> Upload Multiple
+                        </a>
+                        <a href="{% url 'disease_info' %}" class="btn btn-outline-custom">
+                            <i class="bi bi-journal-medical"></i> Learn About Diseases
+                        </a>
+                        {% else %}
+                        <a href="{% url 'upload_image' %}" class="btn btn-primary-custom">
+                            <i class="bi bi-upload"></i> Test Another Leaf
+                        </a>
+                        <a href="{% url 'disease_info' %}?disease={{ result.predicted_class }}" class="btn btn-warning">
+                            <i class="bi bi-journal-medical"></i> Treatment Details
+                        </a>
+                        <a href="{% url 'batch_predict' %}" class="btn btn-outline-custom">
+                            <i class="bi bi-images"></i> Batch Upload
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'crop_report' %}" class="btn btn-outline-custom">
+                            <i class="bi bi-bar-chart"></i> View Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
